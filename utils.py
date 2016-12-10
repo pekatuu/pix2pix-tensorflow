@@ -17,46 +17,41 @@ get_stddev = lambda x, k_h, k_w: 1/math.sqrt(k_w*k_h*x.get_shape()[-1])
 # -----------------------------
 # new added functions for pix2pix
 
-def load_data(image_path, load_size, fine_size, flip=True, is_test=False):
-    img_A, img_B = load_image(image_path)
-    img_A, img_B = preprocess_A_and_B(img_A, img_B,
-                                      load_size=load_size, fine_size=fine_size,
-                                      flip=flip, is_test=is_test)
+def load_data(image_path, load_size, fine_size, num_images=2, flip=True, is_test=False):
+    images = load_image(image_path, num_images)
+    images = preprocess_images(images, load_size=load_size, fine_size=fine_size, flip=flip, is_test=is_test)
+    images = [img/127.5 - 1. for img in images]
 
-    img_A = img_A/127.5 - 1.
-    img_B = img_B/127.5 - 1.
-
-    img_AB = np.concatenate((img_A, img_B), axis=2)
+    ret = np.concatenate(images, axis=2)
     # img_AB shape: (fine_size, fine_size, input_c_dim + output_c_dim)
-    return img_AB
+    return ret
 
-def load_image(image_path):
+def load_image(image_path, num_images=2):
     input_img = imread(image_path)
-    w = int(input_img.shape[1])
-    w2 = int(w/2)
-    img_A = input_img[:, 0:w2]
-    img_B = input_img[:, w2:w]
+    full_width = int(input_img.shape[1])
 
-    return img_A, img_B
+    if full_width % num_images != 0:
+        raise Exception("invalid dimention. width must be divisible by {},"
+                        " but input_img.shape={}".format(num_images, input_img.shape))
+    img_width = int(full_width/num_images)
 
-def preprocess_A_and_B(img_A, img_B, load_size=286, fine_size=256, flip=True, is_test=False):
+    return [input_img[:, img_width*x:img_width*(x+1)] for x in range(num_images)]
+
+
+def preprocess_images(images, load_size=286, fine_size=256, flip=True, is_test=False):
     if is_test:
-        img_A = scipy.misc.imresize(img_A, [fine_size, fine_size])
-        img_B = scipy.misc.imresize(img_B, [fine_size, fine_size])
+        ret = [scipy.misc.imresize(img, [fine_size, fine_size]) for img in images]
     else:
-        img_A = scipy.misc.imresize(img_A, [load_size, load_size])
-        img_B = scipy.misc.imresize(img_B, [load_size, load_size])
+        ret = [scipy.misc.imresize(img, [load_size, load_size]) for img in images]
 
         h1 = int(np.ceil(np.random.uniform(1e-2, load_size-fine_size)))
         w1 = int(np.ceil(np.random.uniform(1e-2, load_size-fine_size)))
-        img_A = img_A[h1:h1+fine_size, w1:w1+fine_size]
-        img_B = img_B[h1:h1+fine_size, w1:w1+fine_size]
+        ret = [img[h1:h1+fine_size, w1:w1+fine_size] for img in ret]
 
         if flip and np.random.random() > 0.5:
-            img_A = np.fliplr(img_A)
-            img_B = np.fliplr(img_B)
+            ret = [np.fliplr(img) for img in ret]
 
-    return img_A, img_B
+    return ret
 
 # -----------------------------
 
