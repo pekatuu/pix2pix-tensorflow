@@ -10,7 +10,7 @@ from ops import *
 from utils import *
 
 class pix2pix(object):
-    def __init__(self, sess, image_size=256,
+    def __init__(self, sess, load_size, image_size=256,
                  batch_size=1, sample_size=1, output_size=256,
                  gf_dim=64, df_dim=64, L1_lambda=100,
                  input_c_dim=3, output_c_dim=3, dataset_name='facades',
@@ -29,6 +29,7 @@ class pix2pix(object):
         self.sess = sess
         self.is_grayscale = (input_c_dim == 1)
         self.batch_size = batch_size
+        self.load_size = load_size
         self.image_size = image_size
         self.sample_size = sample_size
         self.output_size = output_size
@@ -108,10 +109,12 @@ class pix2pix(object):
 
         self.saver = tf.train.Saver()
 
+    def load_data(self, path):
+        return load_data(path, self.load_size, self.image_size)
 
     def load_random_samples(self):
         data = np.random.choice(glob('./datasets/{}/val/*.jpg'.format(self.dataset_name)), self.batch_size)
-        sample = [load_data(sample_file) for sample_file in data]
+        sample = [self.load_data(sample_file) for sample_file in data]
 
         if (self.is_grayscale):
             sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
@@ -157,12 +160,11 @@ class pix2pix(object):
 
             for idx in xrange(0, batch_idxs):
                 batch_files = data[idx*self.batch_size:(idx+1)*self.batch_size]
-                batch = [load_data(batch_file) for batch_file in batch_files]
+                batch = [self.load_data(batch_file) for batch_file in batch_files]
                 if (self.is_grayscale):
                     batch_images = np.array(batch).astype(np.float32)[:, :, :, None]
                 else:
                     batch_images = np.array(batch).astype(np.float32)
-
                 # Update D network
                 _, summary_str = self.sess.run([d_optim, self.d_sum],
                                                feed_dict={ self.real_data: batch_images })
@@ -392,7 +394,7 @@ class pix2pix(object):
 
         # load testing input
         print("Loading testing images ...")
-        sample = [load_data(sample_file, is_test=True) for sample_file in sample_files]
+        sample = [self.load_data(sample_file, is_test=True) for sample_file in sample_files]
 
         if (self.is_grayscale):
             sample_images = np.array(sample).astype(np.float32)[:, :, :, None]
