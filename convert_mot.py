@@ -60,12 +60,10 @@ def convert_mot(args):
     mot_root = args.mot_root
 
     test_dirs = glob.glob(os.path.join(mot_root, 'test', '*', 'img1'))
-    convert_dirs(args, "test", test_dirs)
+    convert_dirs(args, "val", test_dirs)
 
-    trainval_dirs = glob.glob(os.path.join(mot_root, 'train', '*', 'img1'))
-    dir_num = int(len(trainval_dirs) * 0.7)
-    convert_dirs(args, "train", trainval_dirs[:dir_num])
-    convert_dirs(args, "val", trainval_dirs[dir_num:])
+    train_dirs = glob.glob(os.path.join(mot_root, 'train', '*', 'img1'))
+    convert_dirs(args, "train", train_dirs)
 
 
 def convert_dirs(args, dir_name, dirs):
