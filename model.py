@@ -14,7 +14,7 @@ class pix2pix(object):
                  batch_size=1, sample_size=1, output_size=256,
                  gf_dim=64, df_dim=64, L1_lambda=100,
                  input_c_dim=3, output_c_dim=3, dataset_name='facades',
-                 checkpoint_dir=None, sample_dir=None):
+                 checkpoint_dir=None, sample_dir=None, data_per_image=2):
         """
 
         Args:
@@ -65,6 +65,7 @@ class pix2pix(object):
 
         self.dataset_name = dataset_name
         self.checkpoint_dir = checkpoint_dir
+        self.data_per_image = data_per_image
         self.build_model()
 
     def build_model(self):
@@ -109,8 +110,8 @@ class pix2pix(object):
 
         self.saver = tf.train.Saver()
 
-    def load_data(self, path):
-        return load_data(path, self.load_size, self.image_size)
+    def load_data(self, path, is_test=False):
+        return load_data(path, self.load_size, self.image_size, num_images=self.data_per_image, is_test=is_test)
 
     def load_random_samples(self):
         data = np.random.choice(glob('./datasets/{}/val/*.jpg'.format(self.dataset_name)), self.batch_size)
@@ -279,7 +280,7 @@ class pix2pix(object):
         # d7 is (128 x 128 x self.gf_dim*1*2)
 
         self.d8, self.d8_w, self.d8_b = deconv2d(tf.nn.relu(d7),
-            [self.batch_size, s, s, self.output_c_dim], name='g_d8', with_w=True)
+            [self.batch_size, s, s, self.input_c_dim], name='g_d8', with_w=True)
         # d8 is (256 x 256 x output_c_dim)
 
         return tf.nn.tanh(self.d8)
@@ -351,7 +352,7 @@ class pix2pix(object):
         # d7 is (128 x 128 x self.gf_dim*1*2)
 
         self.d8, self.d8_w, self.d8_b = deconv2d(tf.nn.relu(d7),
-            [self.batch_size, s, s, self.output_c_dim], name='g_d8', with_w=True)
+            [self.batch_size, s, s, self.input_c_dim], name='g_d8', with_w=True)
         # d8 is (256 x 256 x output_c_dim)
 
         return tf.nn.tanh(self.d8)

@@ -33,6 +33,7 @@ parser.add_argument('--checkpoint_dir', dest='checkpoint_dir', default='./checkp
 parser.add_argument('--sample_dir', dest='sample_dir', default='./sample', help='sample are saved here')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
 parser.add_argument('--L1_lambda', dest='L1_lambda', type=float, default=100.0, help='weight on L1 term in objective')
+parser.add_argument('--data_per_image', type=int, default=2, help="# of images in a training image")
 
 args = parser.parse_args()
 
@@ -48,7 +49,7 @@ def main(_):
         model = pix2pix(sess, load_size=args.load_size, image_size=args.fine_size, batch_size=args.batch_size,
                         output_size=args.fine_size, dataset_name=args.dataset_name,
                         checkpoint_dir=args.checkpoint_dir, sample_dir=args.sample_dir,
-                        input_c_dim=args.input_nc)
+                        input_c_dim=args.input_nc, output_c_dim=args.output_nc, data_per_image=args.data_per_image)
 
         if args.phase == 'train':
             model.train(args)
