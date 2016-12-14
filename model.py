@@ -88,7 +88,6 @@ class pix2pix(object):
 
         self.d_sum = tf.histogram_summary("d", self.D)
         self.d__sum = tf.histogram_summary("d_", self.D_)
-        self.fake_B_sum = tf.image_summary("fake_B", self.fake_B)
 
         self.d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits, tf.ones_like(self.D)))
         self.d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits_, tf.zeros_like(self.D_)))
@@ -142,7 +141,7 @@ class pix2pix(object):
         tf.initialize_all_variables().run()
 
         self.g_sum = tf.merge_summary([self.d__sum,
-            self.fake_B_sum, self.d_loss_fake_sum, self.g_loss_sum])
+            self.d_loss_fake_sum, self.g_loss_sum])
         self.d_sum = tf.merge_summary([self.d_sum, self.d_loss_real_sum, self.d_loss_sum])
         self.writer = tf.train.SummaryWriter("./logs", self.sess.graph)
 
