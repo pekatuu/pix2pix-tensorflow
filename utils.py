@@ -80,8 +80,15 @@ def merge(images, size):
 
     return img
 
-def imsave(images, size, path):
-    return scipy.misc.imsave(path, merge(images, size))
+def imsave(images, size, path, c=3):
+    _, h, w, channel = images.shape
+    img_nr = int(channel / c)
+    img_width = w * size[1]
+    img = np.zeros((h * size[0], img_width * img_nr, 3))
+    for i in range(img_nr):
+        img[:, img_width*i:img_width*(i+1), :] = merge(images[:,:,:,c*i:c*(i+1)], size)
+
+    return scipy.misc.imsave(path, img)
 
 def transform(image, npx=64, is_crop=True, resize_w=64):
     # npx : # of pixels width/height of image
